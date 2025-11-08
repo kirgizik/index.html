@@ -1,1 +1,2099 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Жирная Ловля</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background 0.3s ease;
+        }
+        
+        #startScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .menu-buttons {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        
+        .help-btn, .achievements-btn, .pi-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.2em;
+            color: white;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+        
+        .pi-btn {
+            font-size: 0.9em;
+            padding: 5px;
+        }
+        
+        .title {
+            font-size: 3em;
+            color: white;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.5em;
+            color: #ffeb3b;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .total-coins {
+            font-size: 1.8em;
+            color: #ffeb3b;
+            margin-bottom: 10px;
+            text-align: center;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
+        
+        .user-id {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.7);
+            background: rgba(0,0,0,0.3);
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+        
+        .start-btn {
+            background: linear-gradient(45deg, #ff4081, #f50057);
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.8em;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+        
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        .menu-buttons-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .menu-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border: none;
+            padding: 12px 20px;
+            font-size: 1.1em;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            min-width: 120px;
+            transition: all 0.3s ease;
+        }
+        
+        .menu-btn:hover {
+            transform: scale(1.05);
+        }
 
+        .daily-bonus-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.3em;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 6px;
+            min-width: 200px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+        }
+        
+        .daily-bonus-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(255,215,0,0.6);
+        }
+        
+        .daily-bonus-btn:disabled {
+            background: linear-gradient(45deg, #7f8c8d, #95a5a6);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        #gameScreen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .game-ui {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+        }
+        
+        .ui-left, .ui-right {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .lives, .coins, .timer, .booster-timer {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 1.5em;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .booster-timer {
+            display: none;
+        }
+        
+        .game-area {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: linear-gradient(180deg, #87CEEB, #98FB98);
+            overflow: hidden;
+        }
+        
+        .pig {
+            position: absolute;
+            font-size: 4em;
+            transition: transform 0.2s ease;
+            z-index: 10;
+            user-select: none;
+            filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.3));
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .food {
+            position: absolute;
+            font-size: 2.5em;
+            z-index: 5;
+            user-select: none;
+            transition: transform 0.1s ease;
+        }
+        
+        .healthy-food {
+            font-size: 3em;
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .fast-food {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .booster-item {
+            font-size: 2.8em;
+            animation: spin 2s linear infinite;
+            filter: drop-shadow(0 0 8px #ffeb3b);
+        }
+        
+        .honey {
+            font-size: 3.5em;
+            animation: honeyGlow 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px gold);
+        }
+        
+        .mushroom {
+            font-size: 3.2em;
+            animation: mushroomGlow 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 12px #8B4513);
+        }
+        
+        .magnet {
+            font-size: 2.8em;
+            animation: magnetGlow 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px #2196F3);
+        }
+        
+        .barrier {
+            font-size: 2.8em;
+            animation: barrierGlow 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px #00FF00);
+        }
+        
+        .coin-text {
+            position: absolute;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 20;
+            pointer-events: none;
+            animation: coinFloat 1s ease-out forwards;
+        }
+        
+        @keyframes coinFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes honeyGlow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        @keyframes mushroomGlow {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(5deg); }
+            75% { transform: scale(1.1) rotate(-5deg); }
+        }
+        
+        @keyframes magnetGlow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes barrierGlow {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        #resultScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+        }
+        
+        .result-content {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .result-title {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #ffeb3b;
+        }
+        
+        .result-stats {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        #achievementsScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            padding: 20px;
+        }
+        
+        .achievements-container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .achievement {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .achievement.unlocked {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+        }
+        
+        .achievement-count {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .achievement-icon {
+            font-size: 3em;
+            margin-right: 20px;
+        }
+        
+        .achievement-info {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .achievement-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .achievement-desc {
+            font-size: 1em;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        #helpScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            padding: 20px;
+        }
+        
+        #wallpaperScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            padding: 20px;
+        }
+        
+        .wallpaper-content {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(5, 50px);
+            grid-template-rows: repeat(4, 50px);
+            gap: 10px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            justify-content: center;
+        }
+        
+        .color-item {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .color-item:hover {
+            transform: scale(1.1);
+            border-color: white;
+        }
+        
+        .color-item.selected {
+            border-color: #ffeb3b;
+            transform: scale(1.1);
+        }
+        
+        .upload-btn {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 2em;
+            color: white;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .confirm-btn {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .confirm-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        #shopScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            padding: 20px;
+        }
+        
+        .shop-container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .shop-item {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .shop-item:hover {
+            transform: scale(1.02);
+        }
+        
+        .shop-item-count {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .shop-item-info {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .shop-item-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .shop-item-desc {
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 5px;
+        }
+        
+        .shop-item-price {
+            font-size: 1.1em;
+            color: #ffeb3b;
+            font-weight: bold;
+        }
+        
+        .buy-btn {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .buy-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .buy-btn:disabled {
+            background: linear-gradient(45deg, #7f8c8d, #95a5a6);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #powerupsScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            padding: 20px;
+        }
+        
+        .powerup-item {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 15px;
+            width: 300px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .powerup-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .powerup-item.selected {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            transform: scale(1.05);
+        }
+        
+        .powerup-count {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        #pauseScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+        }
+        
+        .pause-content {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .pause-title {
+            font-size: 3em;
+            margin-bottom: 30px;
+            color: #ffeb3b;
+        }
+        
+        .pause-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3em;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            width: 200px;
+            transition: all 0.3s ease;
+        }
+        
+        .pause-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .game-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            z-index: 3000;
+            display: none;
+            animation: notificationPop 0.5s ease-out;
+        }
+        
+        @keyframes notificationPop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            70% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        #friendsScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            padding: 20px;
+        }
+        
+        .friends-container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .profile-edit {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-edit:hover {
+            transform: scale(1.02);
+        }
+        
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .profile-avatar {
+            font-size: 2.5em;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+        }
+        
+        .profile-name {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .search-friend {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+        
+        #profileEditScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            padding: 20px;
+        }
+        
+        .profile-edit-container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+        }
+        
+        .avatar-item {
+            font-size: 2em;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .avatar-item:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .avatar-item.selected {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+
+        /* Стили для эффекта числа Пи */
+        .pi-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: none;
+            overflow: hidden;
+        }
+
+        .pi-text {
+            position: absolute;
+            color: white;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+            opacity: 0.8;
+            text-shadow: 0 0 10px #00ff00;
+            animation: piGlitch 0.1s infinite;
+        }
+
+        @keyframes piGlitch {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(2px, -2px); }
+            50% { transform: translate(-2px, 2px); }
+            75% { transform: translate(1px, -1px); }
+            100% { transform: translate(0, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <div class="menu-buttons">
+            <button class="help-btn" onclick="showHelp()">❓</button>
+            <button class="pi-btn" onclick="showPi()">А эт че?</button>
+            <button class="achievements-btn" onclick="showAchievements()">🏆</button>
+        </div>
+        <div class="title">🐷 ЖИРНАЯ ЛОВЛЯ 🍔</div>
+        <div class="subtitle">Лови фастфуд, избегай здоровой пищи! 🎯</div>
+        <div class="total-coins" id="totalCoinsDisplay">Всего заработано: 0 🪙</div>
+        <button class="start-btn" onclick="showPowerups()">🎮 НАЧАТЬ ИГРУ</button>
+        <button class="daily-bonus-btn" id="dailyBonusBtn" onclick="claimDailyBonus()">🎁 ЕЖЕДНЕВНЫЙ БОНУС</button>
+        <div class="menu-buttons-row">
+            <button class="menu-btn" onclick="showWallpaper()">🎨 Обои</button>
+            <button class="menu-btn" onclick="showShop()">🛒 Магазин</button>
+            <button class="menu-btn" onclick="showFriends()">👥 Друзья</button>
+        </div>
+        <div class="user-id" id="userIdDisplay">ID: загрузка...</div>
+    </div>
+
+    <!-- Оверлей для числа Пи -->
+    <div class="pi-overlay" id="piOverlay"></div>
+
+    <div id="gameScreen">
+        <div class="game-ui">
+            <div class="ui-left">
+                <div class="lives">❤️: <span id="livesCount">1</span></div>
+                <div class="coins">🪙: <span id="coinsCount">0</span></div>
+            </div>
+            <div class="ui-right">
+                <div class="timer">⏱️: <span id="timer">40</span></div>
+                <div class="booster-timer" id="boosterTimer1"></div>
+                <div class="booster-timer" id="boosterTimer2"></div>
+                <div class="booster-timer" id="boosterTimer3"></div>
+                <div class="booster-timer" id="boosterTimer4"></div>
+            </div>
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            <div class="pig" id="pig">🐷</div>
+        </div>
+    </div>
+
+    <div id="resultScreen">
+        <div class="result-content">
+            <div class="result-title">🎮 ИГРА ОКОНЧЕНА</div>
+            <div class="result-stats">
+                <div>🪙 Заработано: <span id="finalCoins">0</span> жыркоинов</div>
+                <div>⏱️ Время выживания: <span id="finalTime">0</span>с</div>
+                <div id="achievementsEarned"></div>
+            </div>
+            <button class="start-btn" onclick="exitToMenu()">🏠 В МЕНЮ</button>
+        </div>
+    </div>
+
+    <div id="achievementsScreen">
+        <div class="achievements-container">
+            <div class="result-title">🏆 ДОСТИЖЕНИЯ</div>
+            <div class="achievement" id="achievement1">
+                <div class="achievement-icon">🕋</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">НАСТОЯЩИЙ МУСУЛЬМАНИН</div>
+                    <div class="achievement-desc">Прожить все 40 секунд и не съесть ни одного бекона</div>
+                </div>
+                <div class="achievement-count" id="achievement1Count">0</div>
+            </div>
+            <div class="achievement" id="achievement2">
+                <div class="achievement-icon">👱</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">ТЕПЕРЬ ТЫ НОРМАЛЬНЫЙ ЧЕЛОВЕК</div>
+                    <div class="achievement-desc">Выжить после гриба, питаясь только овощами</div>
+                </div>
+                <div class="achievement-count" id="achievement2Count">0</div>
+            </div>
+            <div class="achievement" id="achievement3">
+                <div class="achievement-icon">?</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">⨅ᔑᓵ⍑ ℸᒷʖᒷ ᒷℸ𝙹?</div>
+                    <div class="achievement-desc">ꖌ⚍!¡╎ℸ⍊ ꖌᔑꖌ⚍!¡ ℸ𝙹 ⍑∷ᒷリ╎ 10 ∷ᔑ⨅</div>
+                </div>
+            </div>
+            <button class="start-btn" onclick="hideAchievements()" style="margin-top: 20px;">👌 ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="helpScreen">
+        <div class="result-content">
+            <div class="result-title">❓ ПРАВИЛА ИГРЫ</div>
+            <div style="text-align: left; font-size: 1.2em; line-height: 1.6;">
+                <p>🐷 Управляйте свинкой пальцем</p>
+                <p>🍔 Фастфуд: +10 монет</p>
+                <p>🥬 Овощи: -1 здоровье</p>
+                <p>🍄 Гриб: дает бесконечное здоровье (овощи +10, фастфуд -1 жизнь)</p>
+                <p>🛡️ Барьер: убирает все овощи на 15 секунд</p>
+                <p>🍯 Мед: только сладости x2 цены</p>
+                <p>🪙 Монета: x2 монеты 10 сек</p>
+                <p>⚡ Молния: много овощей, фастфуд x4</p>
+                <p>🧲 Магнит: притягивает фастфуд</p>
+            </div>
+            <button class="start-btn" onclick="hideHelp()">👌 ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="wallpaperScreen">
+        <div class="wallpaper-content">
+            <div class="result-title">🎨 ВЫБОР ОБОЕВ</div>
+            <div class="color-palette" id="colorPalette"></div>
+            <div>
+                <button class="upload-btn" onclick="document.getElementById('wallpaperUpload').click()">+</button>
+                <input type="file" id="wallpaperUpload" accept="image/*" style="display: none;" onchange="handleWallpaperUpload(event)">
+            </div>
+            <button class="confirm-btn" onclick="applySelectedWallpaper()">✅ ПОДТВЕРДИТЬ</button>
+            <button class="start-btn" onclick="hideWallpaper()" style="margin-top: 20px;">👌 ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="shopScreen">
+        <div class="shop-container">
+            <div class="result-title">🛒 МАГАЗИН</div>
+            <div class="shop-item">
+                <div class="shop-item-info">
+                    <div class="shop-item-name">Вторая жизнь</div>
+                    <div class="shop-item-desc">Даёт свинке дополнительную жизнь на одну игру</div>
+                    <div class="shop-item-price">400 🪙</div>
+                </div>
+                <div class="shop-item-count" id="shopExtraLifeCount">0</div>
+                <button class="buy-btn" onclick="buyPowerup('extraLife')" id="buyExtraLife">КУПИТЬ</button>
+            </div>
+            <div class="shop-item">
+                <div class="shop-item-info">
+                    <div class="shop-item-name">Замедление</div>
+                    <div class="shop-item-desc">Первые 20 секунд овощи летят на 20% медленнее</div>
+                    <div class="shop-item-price">200 🪙</div>
+                </div>
+                <div class="shop-item-count" id="shopSlowMotionCount">0</div>
+                <button class="buy-btn" onclick="buyPowerup('slowMotion')" id="buySlowMotion">КУПИТЬ</button>
+            </div>
+            <div class="shop-item">
+                <div class="shop-item-info">
+                    <div class="shop-item-name">Хз че это</div>
+                    <div class="shop-item-price">500 🪙</div>
+                </div>
+                <div class="shop-item-count" id="shopMysteryCount">0</div>
+                <button class="buy-btn" onclick="buyPowerup('mystery')" id="buyMystery">КУПИТЬ</button>
+            </div>
+            <button class="start-btn" onclick="hideShop()" style="margin-top: 20px;">👌 ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="friendsScreen">
+        <div class="friends-container">
+            <div class="result-title">👥 ДРУЗЬЯ</div>
+            <div class="profile-edit" onclick="showProfileEdit()">
+                <div class="profile-info">
+                    <div class="profile-avatar" id="currentAvatar">🐷</div>
+                    <div class="profile-name" id="currentName">Игрок 1</div>
+                </div>
+                <div>✏️</div>
+            </div>
+            <div class="search-friend">
+                <div>🔍 НАЙТИ ДРУГА ПО ID</div>
+                <input type="number" class="search-input" id="friendSearch" placeholder="Введите ID друга">
+                <button class="confirm-btn" onclick="searchFriend()" style="margin-top: 10px;">НАЙТИ</button>
+            </div>
+            <button class="start-btn" onclick="hideFriends()" style="margin-top: 20px;">👌 ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="profileEditScreen">
+        <div class="profile-edit-container">
+            <div class="result-title">✏️ РЕДАКТИРОВАНИЕ ПРОФИЛЯ</div>
+            <input type="text" class="search-input" id="profileNameInput" placeholder="Введите имя" value="Игрок 1">
+            <div class="avatar-grid" id="avatarGrid"></div>
+            <button class="confirm-btn" onclick="saveProfile()">✅ СОХРАНИТЬ</button>
+            <button class="start-btn" onclick="hideProfileEdit()" style="margin-top: 10px;">👌 ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="powerupsScreen">
+        <div class="result-content">
+            <div class="result-title">⚡ ВЫБОР УСИЛЕНИЙ</div>
+            <div class="powerup-item" onclick="selectPowerup('extraLife')" id="powerupExtraLife">
+                <div class="shop-item-name">Вторая жизнь</div>
+                <div class="shop-item-desc">Дополнительная жизнь</div>
+                <div class="powerup-count" id="powerupExtraLifeCount">0</div>
+            </div>
+            <div class="powerup-item" onclick="selectPowerup('slowMotion')" id="powerupSlowMotion">
+                <div class="shop-item-name">Замедление</div>
+                <div class="shop-item-desc">Овощи медленнее 20 сек</div>
+                <div class="powerup-count" id="powerupSlowMotionCount">0</div>
+            </div>
+            <div class="powerup-item" onclick="selectPowerup('mystery')" id="powerupMystery">
+                <div class="shop-item-name">Хз че это</div>
+                <div class="shop-item-desc">Загадочный предмет</div>
+                <div class="powerup-count" id="powerupMysteryCount">0</div>
+            </div>
+            <button class="start-btn" onclick="startGameWithPowerups()" style="margin-top: 20px;">🎮 НАЧАТЬ ИГРУ</button>
+        </div>
+    </div>
+
+    <div id="pauseScreen">
+        <div class="pause-content">
+            <div class="pause-title">⏸️ ПАУЗА</div>
+            <button class="pause-btn" onclick="resumeGame()">▶️ ПРОДОЛЖИТЬ</button>
+            <button class="pause-btn" onclick="showAchievementsFromPause()">🏆 ДОСТИЖЕНИЯ</button>
+            <button class="pause-btn" onclick="exitToMenuFromPause()">🏠 ВЫЙТИ</button>
+        </div>
+    </div>
+
+    <div class="game-notification" id="gameNotification"></div>
+
+    <script>
+        const config = {
+            gameTime: 40,
+            spawnInterval: 400,
+            fastFoodEmojis: ['🥪', '🌭', '🍟', '🍔', '🍕', '🍖', '🥓', '🍗', '🌯'],
+            healthyFoodEmojis: ['🥦', '🥬', '🌽', '🥕', '🍆', '🥑', '🍅', '🍎', '🍌', '🍒', '🫑', '🥒'],
+            boosterEmojis: {
+                coin: '🪙',
+                noHealthy: '🛡️',
+                lightning: '⚡',
+                magnet: '🧲'
+            },
+            honeyEmoji: '🍯',
+            mushroomEmoji: '🍄',
+            avatarEmojis: ['🐭', '🐷', '🫄', '🥸', '👹', '💩', '🦵', '💪', '🫁', '👃', '👅', '👁️', '👶', '🧌']
+        };
+
+        // Число Пи (полная версия)
+        const piNumber = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458700660631558817488152092096282925409171536436789259036001133053054882046652138414695194151160943305727036575959195309218611738193261179310511854807446237996274956735188575272489122793818301194912983367336244065664308602139494639522473719070217986094370277053921717629317675238467481846766940513200056812714526356082778577134275778960917363717872146844090122495343014654958537105079227968925892354201995611212902196086403441815981362977477130996051870721134999999837297804995105973173281609631859502445945534690830264252230825334468503526193118817101000313783875288658753320838142061717766914730359825349042875546873115956286388235378759375195778185778053217122680661300192787661119590921642019893809525720106548586327886593615338182796823030195203530185296899577362259941389124972177528347913151557485724245415069595082953311686172785588907509838175463746493931925506040092770167113900984882401285836160356370766010471018194295559619894676783744944825537977472684710404753464620804668425906949129331367702898915210475216205696602405803815019351125338243003558764024749647326391419927260426992279678235478163600934172164121992458631503028618297455570674983850549458858692699569092721079750930295532116534498720275596023648066549911988183479775356636980742654252786255181841757467289097777279380008164706001614524919217321721477235014144197356854816136115735255213347574184946843852332390739414333454776241686251898356948556209921922218427255025425688767179049460165346680498862723279178608578438382796797668145410095388378636095068006422512520511739298489608412848862694560424196528502221066118630674427862203919494504712371378696095636437191728746776465757396241389086583264599581339047802759009946576407895126946839835259570982582262052248940772671947826848260147699090264013639443745530506820349625245174939965143142980919065925093722169646151570985838741059788595977297549893016175392846813826868386894277415599185592524595395943104997252468084598727364469584865383673622262609912460805124388439045124413654976278079771569143599770012961608944169486855584840635342207222582848864815845602850601684273945226746767889525213852254995466672782398645659611635488623057745649803559363456817432411251507606947945109659609402522887971089314566913686722874894056010150330861792868092087476091782493858900971490967598526136554978189312978482168299894872265880485756401427047755513237964145152374623436454285844479526586782105114135473573952311342716610213596953623144295248493718711014576540359027993440374200731057853906219838744780847848968332144571386875194350643021845319104848100537061468067491927819119793995206141966342875444064374512371819217999839101591956181467514269123974894090718649423196156794520809514655022523160388193014209376213785595663893778708303906979207734672218256259966150142150306803844773454920260541466592520149744285073251866600213243408819071048633173464965145390579626856100550810665879699816357473638405257145910289706414011097120628043903975951567715770042033786993600723055876317635942187312514712053292819182618612586732157919841484882916447060957527069572209175671167229109816909152801735067127485832228718352093539657251210835791513698820914442100675103346711031412671113699086585163983150197016515116851714376576183515565088490998985998238734552833163550764791853589322618548963213293308985706420467525907091548141654985946163718027098199430992448895757128289059232332609729971208443357326548938239119325974636673058360414281388303203824903758985243744170291327656180937734440307074692112019130203303801976211011004492932151608424448596376698389522868478312355265821314495768572624334418930396864262434107732269780280731891544110104468232527162010526522721116603966655730925471105578537634668206531098965269186205647693125705863566201855810072936065987648611791045334885034611365768675324944166803962657978771855608455296541266540853061434443185867697514566140680070023787765913440171274947042056223053899456131407112700040785473326993908145466464588079727082668306343285878569830523580893306575740679545716377525420211495576158140025012622859413021647155097925923099079654737612551765675135751782966645477917450112996148903046399471329621073404375189573596145890193897131117904297828564750320319869151402870808599048010941214722131794764777262241425485454033215718530614228813758504306332175182979866223717215916077166925474873898665494945011465406284336639379003976926567214638530673609657120918076383271664162748888007869256029022847210403172118608204190004229661711963779213375751149595015660496318629472654736425230817703675159067350235072835405670403867435136222247715891504953098444893330963408780769325993978054193414473774418426312986080998886874132604721569516239658645730216315981931951673538129741677294786724229246543668009806769282382806899640048243540370141631496589794092432378969070697794223625082216889573837986230015937764716512289357860158816175578297352334460428151262720373431465319777741603199066554187639792933441952154134189948544473456738316249934191318148092777710386387734317720754565453220777092120190516609628049092636019759882816133231666365286193266863360627356763035447762803504507772355471058595487027908143562401451718062464362679456127531813407833033625423278394497538243720583531147711992606381334677687969597030983391307710987040859133746414428227726346594704745878477872019277152807317679077071572134447306057007334924369311383504931631284042512192565179806941135280131470130478164378851852909285452011658393419656213491434159562586586557055269049652098580338507224264829397285847831630577775606888764462482468579260395352773480304802900587607582510474709164396136267604492562742042083208566119062545433721315359584506877246029016187667952406163425225771954291629919306455377991403734043287526288896399587947572917464263574552540790914513571113694109119393251910760208252026187985318877058429725916778131496990090192116971737278476847268608490033770242429165130050051683233643503895170298939223345172201381280696501178440874519601212285993716231301711444846409038906449544400619869075485160263275052983491874078668088183385102283345085048608250393021332197155184306354550076682829493041377655279397517546139539846833936383047461199665385815384205685338621867252334028308711232827892125077126294632295639898989358211674562701021835646220134967151881909730381198004973407239610368540664319395097901906996395524530054505806855019567302292191393391856803449039820595510022635353619204199474553859381023439554495977837790237421617271117236434354394782218185286240851400666044332588856986705431547069657474585503323233421073015459405165537906866273337995851156257843229882737231989875714159578111963583300594087306812160287649628674460477464915995054973742562690104903778198683593814657412680492564879855614537234786733039046883834363465537949864192705638729317487233208376011230299113679386270894387993620162951541337142489283072201269014754668476535761647737946752004907571555278196536213239264061601363581559074220202031872776052772190055614842555187925303435139844253223415762336106425063904975008656271095359194658975141310348227693062474353632569160781547818115284366795706110861533150445212747392454494542368288606134084148637767009612071512491404302725386076482363414334623518975766452164137679690314950191085759844239198629164219399490723623464684411739403265918404437805133389452574239950829659122850855582157250310712570126683024029295252201187267675622041542051618416348475651699981161410100299607838690929160302884002691041407928862150784245167090870006992821206604183718065355672525325675328612910424877618258297651579598470356222629348600341587229805349896502262917487882027342092222453398562647669149055628425039127";
+
+        let gameActive = false;
+        let lives = 1;
+        let coins = 0;
+        let timeLeft = config.gameTime;
+        let pigElement;
+        let gameArea;
+        let allFood = [];
+        let activeBoosters = {};
+        let spawnInterval;
+        let gameTimer;
+        let isDragging = false;
+        let selectedPowerup = null;
+        let gamePaused = false;
+        let selectedColor = null;
+        let selectedImage = null;
+        let mushroomEaten = false;
+        let mushroomActivated = false;
+        let foodSpeedMultiplier = 1;
+        let mushroomSpawned = false;
+        let foodSpawned = 0;
+        let lightningActive = false;
+        let magnetActive = false;
+        let barrierActive = false;
+        let difficultyLevel = 1;
+        let baseFoodSpeed = 2;
+        let humanTransformationTimer = null;
+        let nextUserId = 1;
+        
+        let userData = {
+            totalCoins: 0,
+            achievements: {
+                muslim: { unlocked: false, count: 0 },
+                normalHuman: { unlocked: false, count: 0 },
+                mysteryBuyer: { unlocked: false, count: 0 }
+            },
+            powerups: {
+                extraLife: 0,
+                slowMotion: 0,
+                mystery: 0
+            },
+            background: null,
+            lastDailyBonus: null,
+            profile: {
+                name: "Игрок 1",
+                avatar: "🐷",
+                id: 1
+            },
+            friends: []
+        };
+
+        // Функция для показа эффекта числа Пи
+        function showPi() {
+            const overlay = document.getElementById('piOverlay');
+            overlay.style.display = 'block';
+            
+            // Создаем множество текстовых элементов с числом Пи
+            for (let i = 0; i < 50; i++) {
+                const piText = document.createElement('div');
+                piText.className = 'pi-text';
+                piText.textContent = piNumber;
+                piText.style.left = Math.random() * 100 + 'vw';
+                piText.style.top = Math.random() * 100 + 'vh';
+                piText.style.fontSize = (Math.random() * 10 + 12) + 'px';
+                piText.style.opacity = Math.random() * 0.5 + 0.3;
+                overlay.appendChild(piText);
+            }
+            
+            // Копируем число Пи в буфер обмена 20 раз
+            copyPiToClipboard();
+            
+            showNotification('π скопировано 20 раз! Эффект уберется при перезаходе в игру');
+        }
+
+        // Функция для копирования числа Пи в буфер обмена 20 раз
+        function copyPiToClipboard() {
+            const textToCopy = piNumber + '\n';
+            let combinedText = '';
+            
+            // Собираем текст из 20 копий числа Пи
+            for (let i = 0; i < 20; i++) {
+                combinedText += textToCopy;
+            }
+            
+            // Используем современный API для копирования в буфер обмена
+            navigator.clipboard.writeText(combinedText).then(() => {
+                console.log('Число Пи скопировано 20 раз в буфер обмена');
+            }).catch(err => {
+                console.error('Ошибка при копировании: ', err);
+                // Fallback для старых браузеров
+                const textArea = document.createElement('textarea');
+                textArea.value = combinedText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            });
+        }
+
+        // Функция для скрытия эффекта числа Пи (вызывается при перезаходе в игру)
+        function hidePi() {
+            const overlay = document.getElementById('piOverlay');
+            overlay.style.display = 'none';
+            overlay.innerHTML = '';
+        }
+
+        function getUserId() {
+            let storedId = localStorage.getItem('fatCatchUserId');
+            if (!storedId) {
+                storedId = nextUserId.toString();
+                localStorage.setItem('fatCatchUserId', storedId);
+                nextUserId++;
+            }
+            return storedId;
+        }
+
+        function loadUserData() {
+            const userId = getUserId();
+            document.getElementById('userIdDisplay').textContent = `ID: ${userId}`;
+            
+            const saved = localStorage.getItem(`fatCatchData_${userId}`);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    Object.assign(userData, parsed);
+                    applyBackground();
+                    updateDailyBonusButton();
+                    updateProfileDisplay();
+                } catch (e) {
+                    console.log('Новые данные созданы');
+                }
+            }
+            updateAllDisplays();
+        }
+
+        function saveUserData() {
+            const userId = getUserId();
+            localStorage.setItem(`fatCatchData_${userId}`, JSON.stringify(userData));
+            updateAllDisplays();
+        }
+
+        function updateAllDisplays() {
+            document.getElementById('totalCoinsDisplay').textContent = `Всего заработано: ${userData.totalCoins} 🪙`;
+            
+            const a1 = document.getElementById('achievement1');
+            const a2 = document.getElementById('achievement2');
+            const a3 = document.getElementById('achievement3');
+            
+            if (userData.achievements.muslim.unlocked) {
+                a1.className = 'achievement unlocked';
+                document.getElementById('achievement1Count').textContent = userData.achievements.muslim.count;
+            } else {
+                a1.className = 'achievement';
+                document.getElementById('achievement1Count').textContent = '0';
+            }
+            
+            if (userData.achievements.normalHuman.unlocked) {
+                a2.className = 'achievement unlocked';
+                document.getElementById('achievement2Count').textContent = userData.achievements.normalHuman.count;
+            } else {
+                a2.className = 'achievement';
+                document.getElementById('achievement2Count').textContent = '0';
+            }
+            
+            if (userData.achievements.mysteryBuyer.unlocked) {
+                a3.className = 'achievement unlocked';
+                a3.querySelector('.achievement-icon').textContent = '🧐';
+                a3.querySelector('.achievement-name').textContent = 'Зач тебе это?';
+                a3.querySelector('.achievement-desc').textContent = 'Купить какую то хрень 10 раз';
+            } else {
+                a3.className = 'achievement';
+                a3.querySelector('.achievement-icon').textContent = '?';
+                a3.querySelector('.achievement-name').textContent = '⨅ᔑᓵ⍑ ℸᒷʖᒷ ᒷℸ𝙹?';
+                a3.querySelector('.achievement-desc').textContent = 'ꖌ⚍!¡╎ℸ⍊ ꖌᔑꖌ⚍!¡ ℸ𝙹 ⍑∷ᒷリ╎ 10 ∷ᔑ⨅';
+            }
+            
+            document.getElementById('shopExtraLifeCount').textContent = userData.powerups.extraLife;
+            document.getElementById('shopSlowMotionCount').textContent = userData.powerups.slowMotion;
+            document.getElementById('shopMysteryCount').textContent = userData.powerups.mystery;
+            
+            document.getElementById('buyExtraLife').disabled = userData.totalCoins < 400;
+            document.getElementById('buySlowMotion').disabled = userData.totalCoins < 200;
+            document.getElementById('buyMystery').disabled = userData.totalCoins < 500;
+            
+            document.getElementById('powerupExtraLifeCount').textContent = userData.powerups.extraLife;
+            document.getElementById('powerupSlowMotionCount').textContent = userData.powerups.slowMotion;
+            document.getElementById('powerupMysteryCount').textContent = userData.powerups.mystery;
+        }
+
+        function updateProfileDisplay() {
+            document.getElementById('currentAvatar').textContent = userData.profile.avatar;
+            document.getElementById('currentName').textContent = userData.profile.name;
+            document.getElementById('profileNameInput').value = userData.profile.name;
+        }
+
+        function generateColorPalette() {
+            const palette = document.getElementById('colorPalette');
+            palette.innerHTML = '';
+            
+            const colors = [
+                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+                '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+                '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2',
+                '#A9DFBF', '#F9E79F', '#D5DBDB', '#FAD7A0', '#AED6F1'
+            ];
+            
+            colors.forEach(color => {
+                const item = document.createElement('div');
+                item.className = 'color-item';
+                item.style.backgroundColor = color;
+                item.onclick = () => {
+                    document.querySelectorAll('.color-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    selectedColor = color;
+                    selectedImage = null;
+                };
+                palette.appendChild(item);
+            });
+        }
+
+        function generateAvatarGrid() {
+            const grid = document.getElementById('avatarGrid');
+            grid.innerHTML = '';
+            
+            config.avatarEmojis.forEach(emoji => {
+                const item = document.createElement('div');
+                item.className = 'avatar-item';
+                if (emoji === userData.profile.avatar) {
+                    item.classList.add('selected');
+                }
+                item.textContent = emoji;
+                item.onclick = () => {
+                    document.querySelectorAll('.avatar-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    userData.profile.avatar = emoji;
+                };
+                grid.appendChild(item);
+            });
+        }
+
+        function applySelectedWallpaper() {
+            if (selectedColor) {
+                userData.background = { type: 'color', value: selectedColor };
+                saveUserData();
+                applyBackground();
+                showNotification('🎨 Цвет фона изменен!');
+                hideWallpaper();
+            } else if (selectedImage) {
+                userData.background = { type: 'image', value: selectedImage };
+                saveUserData();
+                applyBackground();
+                showNotification('🖼️ Обои успешно установлены!');
+                hideWallpaper();
+            } else {
+                showNotification('❌ Выберите цвет или загрузите фото!');
+            }
+        }
+
+        function handleWallpaperUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    selectedImage = e.target.result;
+                    selectedColor = null;
+                    document.querySelectorAll('.color-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    showNotification('📸 Фото выбрано! Нажмите "Подтвердить"');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function applyBackground() {
+            if (userData.background) {
+                if (userData.background.type === 'color') {
+                    document.body.style.background = userData.background.value;
+                    document.body.style.backgroundImage = 'none';
+                } else if (userData.background.type === 'image') {
+                    document.body.style.backgroundImage = `url('${userData.background.value}')`;
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundPosition = 'center';
+                    document.body.style.backgroundRepeat = 'no-repeat';
+                }
+            } else {
+                document.body.style.background = 'linear-gradient(135deg, #ff6b6b, #ffa726)';
+                document.body.style.backgroundImage = 'none';
+            }
+        }
+
+        function showNotification(text) {
+            const notification = document.getElementById('gameNotification');
+            notification.textContent = text;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 2000);
+        }
+
+        function showCoinText(value, x, y) {
+            const coinText = document.createElement('div');
+            coinText.className = 'coin-text';
+            coinText.textContent = `+${value}🪙`;
+            coinText.style.left = x + 'px';
+            coinText.style.top = y + 'px';
+            gameArea.appendChild(coinText);
+            
+            setTimeout(() => {
+                if (coinText.parentNode) {
+                    coinText.remove();
+                }
+            }, 1000);
+        }
+
+        function canClaimDailyBonus() {
+            if (!userData.lastDailyBonus) return true;
+            const lastClaim = new Date(userData.lastDailyBonus);
+            const now = new Date();
+            return now.toDateString() !== lastClaim.toDateString();
+        }
+
+        function updateDailyBonusButton() {
+            const btn = document.getElementById('dailyBonusBtn');
+            if (canClaimDailyBonus()) {
+                btn.disabled = false;
+                btn.textContent = '🎁 ЕЖЕДНЕВНЫЙ БОНУС';
+            } else {
+                btn.disabled = true;
+                btn.textContent = '🎁 БОНУС ПОЛУЧЕН';
+            }
+        }
+
+        function claimDailyBonus() {
+            if (!canClaimDailyBonus()) {
+                showNotification('❌ Бонус уже получен сегодня!');
+                return;
+            }
+
+            userData.totalCoins += 200;
+            userData.lastDailyBonus = new Date().toISOString();
+            saveUserData();
+            updateDailyBonusButton();
+            showNotification('🎁 +200 жыркоинов! Возвращайтесь завтра!');
+        }
+
+        function buyPowerup(type) {
+            const prices = { extraLife: 400, slowMotion: 200, mystery: 500 };
+            
+            if (userData.totalCoins >= prices[type]) {
+                userData.totalCoins -= prices[type];
+                userData.powerups[type]++;
+                
+                if (type === 'mystery' && userData.powerups.mystery >= 10) {
+                    userData.achievements.mysteryBuyer.unlocked = true;
+                    userData.achievements.mysteryBuyer.count = 1;
+                    showNotification('🎉 Получено достижение: "Зач тебе это?"');
+                }
+                
+                saveUserData();
+                showNotification(`✅ "${getPowerupName(type)}" куплено!`);
+            } else {
+                showNotification('💸 Не хватает денег!');
+            }
+        }
+
+        function getPowerupName(type) {
+            return {
+                extraLife: 'Вторая жизнь',
+                slowMotion: 'Замедление', 
+                mystery: 'Хз че это'
+            }[type];
+        }
+
+        function selectPowerup(type) {
+            if (userData.powerups[type] > 0) {
+                selectedPowerup = type;
+                document.querySelectorAll('.powerup-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                document.getElementById(`powerup${type.charAt(0).toUpperCase() + type.slice(1)}`).classList.add('selected');
+            } else {
+                showNotification('❌ У вас нет этого усиления!');
+            }
+        }
+
+        function startGameWithPowerups() {
+            if (selectedPowerup && userData.powerups[selectedPowerup] > 0) {
+                userData.powerups[selectedPowerup]--;
+                saveUserData();
+            }
+            hidePowerups();
+            startGame();
+        }
+
+        function initGame() {
+            pigElement = document.getElementById('pig');
+            gameArea = document.getElementById('gameArea');
+            
+            mushroomEaten = false;
+            mushroomActivated = false;
+            mushroomSpawned = false;
+            foodSpeedMultiplier = 1;
+            foodSpawned = 0;
+            lightningActive = false;
+            magnetActive = false;
+            barrierActive = false;
+            difficultyLevel = 1;
+            baseFoodSpeed = 2;
+            
+            pigElement.textContent = '🐷';
+            
+            setupTouchControls();
+            setupPauseControls();
+            
+            lives = selectedPowerup === 'extraLife' ? 2 : 1;
+            coins = 0;
+            timeLeft = config.gameTime;
+            allFood = [];
+            activeBoosters = {};
+            
+            updateUI();
+        }
+
+        function setupTouchControls() {
+            pigElement.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                pigElement.style.transition = 'none';
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging || !gameActive || gamePaused) return;
+                e.preventDefault();
+                
+                const touchX = e.touches[0].clientX;
+                const pigRect = pigElement.getBoundingClientRect();
+                const newX = touchX - pigRect.width / 2;
+                const maxX = window.innerWidth - pigRect.width;
+                
+                pigElement.style.left = Math.max(0, Math.min(newX, maxX)) + 'px';
+            });
+
+            document.addEventListener('touchend', () => {
+                isDragging = false;
+                pigElement.style.transition = 'left 0.2s ease';
+            });
+
+            setInterval(() => {
+                if (gameActive && !gamePaused) {
+                    checkCollisions();
+                }
+            }, 50);
+        }
+
+        function setupPauseControls() {
+            let lastTap = 0;
+            gameArea.addEventListener('touchstart', (e) => {
+                const currentTime = Date.now();
+                if (currentTime - lastTap < 300) {
+                    showPauseScreen();
+                }
+                lastTap = currentTime;
+            });
+        }
+
+        function showPauseScreen() {
+            if (!gameActive || gamePaused) return;
+            gamePaused = true;
+            clearInterval(spawnInterval);
+            clearInterval(gameTimer);
+            document.getElementById('pauseScreen').style.display = 'flex';
+        }
+
+        function resumeGame() {
+            gamePaused = false;
+            document.getElementById('pauseScreen').style.display = 'none';
+            spawnInterval = setInterval(spawnFood, config.spawnInterval);
+            gameTimer = setInterval(updateTimer, 1000);
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            gameActive = true;
+            initGame();
+            
+            spawnInterval = setInterval(spawnFood, config.spawnInterval);
+            gameTimer = setInterval(updateTimer, 1000);
+            
+            // Скрываем эффект числа Пи при начале игры
+            hidePi();
+        }
+
+        function updateUI() {
+            document.getElementById('livesCount').textContent = lives;
+            document.getElementById('coinsCount').textContent = coins;
+            document.getElementById('timer').textContent = timeLeft;
+        }
+
+        function updateTimer() {
+            if (!gameActive || gamePaused) return;
+            
+            timeLeft--;
+            
+            if (timeLeft % 10 === 0) {
+                difficultyLevel++;
+                baseFoodSpeed += 0.3;
+            }
+            
+            document.getElementById('timer').textContent = timeLeft;
+            
+            Object.keys(activeBoosters).forEach(booster => {
+                activeBoosters[booster].timeLeft--;
+                if (activeBoosters[booster].timeLeft <= 0) {
+                    delete activeBoosters[booster];
+                    hideBoosterTimer(booster);
+                    
+                    // Отключаем барьер, когда время вышло
+                    if (booster === 'noHealthy') {
+                        barrierActive = false;
+                    }
+                } else {
+                    updateBoosterTimer(booster, activeBoosters[booster].timeLeft);
+                }
+            });
+            
+            if (timeLeft === 5 && mushroomActivated) {
+                pigElement.textContent = '🐷';
+            }
+            
+            if (timeLeft <= 0) {
+                endGame(true);
+            }
+        }
+
+        function showBoosterTimer(booster, duration) {
+            const timerId = `boosterTimer${Object.keys(activeBoosters).length + 1}`;
+            const timer = document.getElementById(timerId);
+            if (timer) {
+                timer.style.display = 'block';
+                timer.innerHTML = `${config.boosterEmojis[booster]}: <span>${duration}</span>`;
+                activeBoosters[booster] = {
+                    timeLeft: duration,
+                    timerId: timerId
+                };
+            }
+        }
+
+        function updateBoosterTimer(booster, timeLeft) {
+            if (activeBoosters[booster]) {
+                const timer = document.getElementById(activeBoosters[booster].timerId);
+                if (timer) {
+                    timer.querySelector('span').textContent = timeLeft;
+                }
+            }
+        }
+
+        function hideBoosterTimer(booster) {
+            if (activeBoosters[booster]) {
+                const timer = document.getElementById(activeBoosters[booster].timerId);
+                if (timer) {
+                    timer.style.display = 'none';
+                }
+            }
+        }
+
+        function spawnFood() {
+            if (!gameActive || gamePaused) return;
+            
+            // Если активен барьер, не спавним овощи
+            if (barrierActive && Math.random() < 0.8) {
+                return;
+            }
+            
+            foodSpawned++;
+            
+            const food = document.createElement('div');
+            food.className = 'food';
+            
+            let emoji, value = 10, isHealthy = false, isBooster = false, isSpecial = false;
+            const random = Math.random();
+            
+            if (!mushroomSpawned && foodSpawned <= 3 && Math.random() < 0.7) {
+                emoji = config.mushroomEmoji;
+                isSpecial = true;
+                mushroomSpawned = true;
+                food.classList.add('mushroom');
+            } else {
+                let healthyRatio;
+                if (lightningActive) {
+                    healthyRatio = 0.95 + (Math.random() * 0.02);
+                } else {
+                    healthyRatio = 0.75 + (Math.random() * 0.15);
+                }
+                
+                if (random < healthyRatio) {
+                    emoji = config.healthyFoodEmojis[Math.floor(Math.random() * config.healthyFoodEmojis.length)];
+                    isHealthy = true;
+                    // Изменено: при активированном грибе овощи дают +10, фастфуд отнимает жизнь
+                    value = mushroomActivated ? 10 : -1;
+                    food.classList.add('healthy-food');
+                } else if (random < healthyRatio + 0.04) {
+                    const boosters = Object.keys(config.boosterEmojis);
+                    const booster = boosters[Math.floor(Math.random() * boosters.length)];
+                    emoji = config.boosterEmojis[booster];
+                    isBooster = true;
+                    if (emoji === '🧲') {
+                        food.classList.add('magnet');
+                    } else if (emoji === '🛡️') {
+                        food.classList.add('barrier');
+                    } else {
+                        food.classList.add('booster-item');
+                    }
+                } else if (random < healthyRatio + 0.06) {
+                    emoji = config.honeyEmoji;
+                    isSpecial = true;
+                    food.classList.add('honey');
+                } else {
+                    emoji = config.fastFoodEmojis[Math.floor(Math.random() * config.fastFoodEmojis.length)];
+                    // Изменено: при активированном грибе фастфуд отнимает жизнь
+                    value = mushroomActivated ? -1 : 10;
+                    food.classList.add('fast-food');
+                }
+            }
+            
+            food.textContent = emoji;
+            food.dataset.value = value;
+            food.dataset.type = isHealthy ? 'healthy' : (isBooster ? 'booster' : (isSpecial ? 'special' : 'fast'));
+            food.dataset.emoji = emoji;
+            
+            const startX = Math.random() * (window.innerWidth - 60);
+            food.style.left = startX + 'px';
+            food.style.top = '-60px';
+            
+            gameArea.appendChild(food);
+            
+            const finalSpeed = (baseFoodSpeed + Math.random() * 2) * foodSpeedMultiplier;
+            const foodObj = { 
+                element: food, 
+                speed: finalSpeed,
+                attracted: false,
+                startY: -60
+            };
+            allFood.push(foodObj);
+            
+            animateFood(foodObj);
+        }
+
+        function animateFood(foodObj) {
+            if (!gameActive || gamePaused) return;
+            
+            const food = foodObj.element;
+            const currentTop = parseInt(food.style.top);
+            
+            if (magnetActive && food.dataset.type === 'fast' && !foodObj.attracted && 
+                currentTop > window.innerHeight / 3) {
+                foodObj.attracted = true;
+            }
+            
+            let newTop;
+            if (foodObj.attracted) {
+                const pigRect = pigElement.getBoundingClientRect();
+                const foodRect = food.getBoundingClientRect();
+                const targetX = pigRect.left + pigRect.width / 2 - foodRect.width / 2;
+                const targetY = pigRect.top - foodRect.height;
+                
+                const currentX = parseInt(food.style.left);
+                const dx = targetX - currentX;
+                const dy = targetY - currentTop;
+                
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const speed = 8;
+                
+                if (distance > 5) {
+                    food.style.left = (currentX + (dx / distance) * speed) + 'px';
+                    newTop = currentTop + (dy / distance) * speed;
+                } else {
+                    newTop = targetY;
+                }
+            } else {
+                newTop = currentTop + foodObj.speed;
+            }
+            
+            food.style.top = newTop + 'px';
+            
+            if (newTop > window.innerHeight) {
+                food.remove();
+                allFood = allFood.filter(f => f !== foodObj);
+            } else {
+                requestAnimationFrame(() => animateFood(foodObj));
+            }
+        }
+
+        function checkCollisions() {
+            if (!gameActive || gamePaused) return;
+            
+            const pigRect = pigElement.getBoundingClientRect();
+            
+            allFood.forEach((foodObj, index) => {
+                const food = foodObj.element;
+                const foodRect = food.getBoundingClientRect();
+                
+                if (pigRect.left < foodRect.right &&
+                    pigRect.right > foodRect.left &&
+                    pigRect.top < foodRect.bottom &&
+                    pigRect.bottom > foodRect.top) {
+                    
+                    handleFoodCollection(food);
+                    allFood.splice(index, 1);
+                }
+            });
+        }
+
+        function handleFoodCollection(food) {
+            const value = parseInt(food.dataset.value);
+            const type = food.dataset.type;
+            const emoji = food.dataset.emoji;
+            const rect = food.getBoundingClientRect();
+            
+            if (emoji === config.mushroomEmoji) {
+                mushroomEaten = true;
+                mushroomActivated = true; // Активируем гриб сразу
+                pigElement.textContent = '🫄';
+                showNotification('🍄 Гриб съеден! Бесконечное здоровье активировано!');
+                
+                if (!userData.achievements.normalHuman.unlocked) {
+                    userData.achievements.normalHuman.unlocked = true;
+                    userData.achievements.normalHuman.count = 1;
+                    showNotification('🎉 Получено достижение: "ТЕПЕРЬ ТЫ НОРМАЛЬНЫЙ ЧЕЛОВЕК"');
+                    saveUserData();
+                }
+            } else if (type === 'healthy') {
+                if (mushroomActivated) {
+                    // При активированном грибе овощи дают монеты
+                    coins += value;
+                    showCoinText(value, rect.left + rect.width/2, rect.top + rect.height/2);
+                } else {
+                    // Без гриба овощи отнимают жизнь
+                    lives--;
+                    showNotification('💔 -1 жизнь!');
+                }
+            } else if (type === 'fast') {
+                if (mushroomActivated) {
+                    // При активированном грибе фастфуд отнимает жизнь
+                    lives--;
+                    showNotification('💔 -1 жизнь!');
+                } else {
+                    // Без гриба фастфуд дает монеты
+                    coins += value;
+                    showCoinText(value, rect.left + rect.width/2, rect.top + rect.height/2);
+                }
+            } else if (type === 'booster') {
+                handleBooster(emoji);
+            } else if (type === 'special' && emoji === config.honeyEmoji) {
+                showNotification('🍯 Мед активирован!');
+            }
+            
+            food.style.transform = 'scale(0)';
+            food.style.opacity = '0';
+            setTimeout(() => {
+                if (food.parentNode) {
+                    food.remove();
+                }
+            }, 200);
+            
+            updateUI();
+            
+            if (lives <= 0) {
+                if (humanTransformationTimer) {
+                    clearTimeout(humanTransformationTimer);
+                }
+                endGame(false);
+            }
+        }
+
+        function handleBooster(emoji) {
+            switch(emoji) {
+                case '🪙':
+                    showBoosterTimer('coin', 10);
+                    break;
+                case '🛡️': // Барьер - убирает все овощи на 15 секунд
+                    barrierActive = true;
+                    showBoosterTimer('noHealthy', 15);
+                    showNotification('🛡️ Барьер активирован! Овощи не появляются 15 секунд!');
+                    
+                    // Удаляем все текущие овощи
+                    allFood.forEach((foodObj, index) => {
+                        if (foodObj.element.dataset.type === 'healthy') {
+                            foodObj.element.remove();
+                            allFood.splice(index, 1);
+                        }
+                    });
+                    
+                    setTimeout(() => {
+                        barrierActive = false;
+                    }, 15000);
+                    break;
+                case '⚡':
+                    lightningActive = true;
+                    showBoosterTimer('lightning', 10);
+                    setTimeout(() => {
+                        lightningActive = false;
+                    }, 10000);
+                    break;
+                case '🧲':
+                    magnetActive = true;
+                    showBoosterTimer('magnet', 8);
+                    setTimeout(() => {
+                        magnetActive = false;
+                    }, 8000);
+                    break;
+            }
+        }
+
+        function endGame(isWin) {
+            gameActive = false;
+            clearInterval(spawnInterval);
+            clearInterval(gameTimer);
+            if (humanTransformationTimer) {
+                clearTimeout(humanTransformationTimer);
+            }
+            
+            allFood.forEach(food => {
+                if (food.element.parentNode) {
+                    food.element.remove();
+                }
+            });
+            allFood = [];
+            
+            userData.totalCoins += coins;
+            saveUserData();
+            
+            document.getElementById('finalCoins').textContent = coins;
+            document.getElementById('finalTime').textContent = config.gameTime - timeLeft;
+            
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('resultScreen').style.display = 'flex';
+        }
+
+        function showFriends() {
+            document.getElementById('friendsScreen').style.display = 'flex';
+        }
+
+        function hideFriends() {
+            document.getElementById('friendsScreen').style.display = 'none';
+        }
+
+        function showProfileEdit() {
+            generateAvatarGrid();
+            document.getElementById('profileEditScreen').style.display = 'flex';
+        }
+
+        function hideProfileEdit() {
+            document.getElementById('profileEditScreen').style.display = 'none';
+        }
+
+        function saveProfile() {
+            const newName = document.getElementById('profileNameInput').value.trim();
+            if (newName) {
+                userData.profile.name = newName;
+                saveUserData();
+                updateProfileDisplay();
+                hideProfileEdit();
+                showNotification('✅ Профиль сохранен!');
+            }
+        }
+
+        function searchFriend() {
+            const friendId = document.getElementById('friendSearch').value;
+            if (friendId) {
+                showNotification(`🔍 Поиск друга с ID: ${friendId}`);
+            }
+        }
+
+        function showWallpaper() {
+            generateColorPalette();
+            selectedColor = null;
+            selectedImage = null;
+            document.querySelectorAll('.color-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            document.getElementById('wallpaperScreen').style.display = 'flex';
+        }
+
+        function hideWallpaper() {
+            document.getElementById('wallpaperScreen').style.display = 'none';
+        }
+
+        function showShop() {
+            document.getElementById('shopScreen').style.display = 'flex';
+        }
+
+        function hideShop() {
+            document.getElementById('shopScreen').style.display = 'none';
+        }
+
+        function showPowerups() {
+            document.getElementById('powerupsScreen').style.display = 'flex';
+        }
+
+        function hidePowerups() {
+            document.getElementById('powerupsScreen').style.display = 'none';
+        }
+
+        function showHelp() {
+            document.getElementById('helpScreen').style.display = 'flex';
+        }
+
+        function hideHelp() {
+            document.getElementById('helpScreen').style.display = 'none';
+        }
+
+        function showAchievements() {
+            loadUserData();
+            document.getElementById('achievementsScreen').style.display = 'flex';
+        }
+
+        function hideAchievements() {
+            document.getElementById('achievementsScreen').style.display = 'none';
+        }
+
+        function showAchievementsFromPause() {
+            document.getElementById('pauseScreen').style.display = 'none';
+            showAchievements();
+        }
+
+        function exitToMenuFromPause() {
+            document.getElementById('pauseScreen').style.display = 'none';
+            exitToMenu();
+        }
+
+        function exitToMenu() {
+            document.getElementById('resultScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+            gameActive = false;
+            gamePaused = false;
+            if (humanTransformationTimer) {
+                clearTimeout(humanTransformationTimer);
+            }
+        }
+
+        window.addEventListener('load', loadUserData);
+    </script>
+</body>
+</html>
